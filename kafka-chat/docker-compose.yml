@@ -1,0 +1,73 @@
+version: '3'
+
+networks:
+  ext-network:
+    driver: bridge
+
+  int-network:
+    driver: bridge
+    internal: true
+
+services:
+  kafka:                        # Nome do serviço
+    image: apache/kafka:latest  # Imagem oficial do Kafka
+    ports:                      # Mapeamento de Portas
+      - "9092:9092"             # Porta para comunicacao de clientes kafka
+    environment:                # Variaveis de ambiente 
+      KAFKA_NODE_ID: 1                          # Identificador unico do nó do Kafka
+      KAFKA_PROCESS_ROLES: broker,controller    # Define os papeis do no do kafka
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092, CONTROLLER://0.0.0.0:9093    # Endereço em que o próprio Kafka escuta, internamente, por conexões;
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092                      # Endereço que o Kafka anuncia para outros componentes se conectarem a ele
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT, CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    networks:
+      - int-network
+
+  producer-service:
+    build: ./producer-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - int-network
+      - ext-network
+
+  consumer-service:
+    build: ./consumer-service
+    ports:
+      - "8081:8080"
+    depends_on:
+      - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - int-network
+      - ext-network
+
+volumes:
+  kafka-data:
