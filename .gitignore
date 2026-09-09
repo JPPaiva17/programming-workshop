@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Editor / tooling
+.vscode/
+.idea/
+pyrightconfig.json
+
+# OS
+.DS_Store
