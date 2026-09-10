@@ -4,9 +4,9 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
 
-from database.database import SessionLocal, engine
-from database.models import Base, ShortURL
-from shortener import create_short_url
+from app.db.session import SessionLocal, engine
+from app.db.models import Base, ShortURL
+from app.shortener import create_short_url
 
 app = FastAPI()
 

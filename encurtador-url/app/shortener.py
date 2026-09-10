@@ -1,7 +1,7 @@
 import random
 import string
 from sqlalchemy.exc import IntegrityError
-from database.models import ShortURL
+from app.db.models import ShortURL
 
 ALPHABET = string.ascii_letters + string.digits
 
