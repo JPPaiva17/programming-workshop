@@ -6,7 +6,6 @@ from websockets.server import WebSocketServerProtocol
 logger = logging.getLogger("websocket_server")
 ENDPOINT_PATH = "/chat/ws"
 
-
 class WebSocketServer:
     """Servidor WebSocket assíncrono que republica mensagens no Kafka."""
     def __init__(self, chat_producer):
@@ -46,13 +45,13 @@ class WebSocketServer:
                 stale.add(client)
                 self.connections -= stale
     
-    async def start    (self, host: str = "0.0.0.0", port: int = 8080) -> None:
-        """Inicia o servidor WebSocket (equivale a Server.start() no Java)."""
+    async def start(self, host: str = "0.0.0.0", port: int = 8080) -> None:
+        """Inicia o servidor WebSocket"""
         self._server = await websockets.serve(self._handler, host, port)
         logger.info("Servidor WebSocket do produtor ouvindo em %s:%d%s", host, port, ENDPOINT_PATH)
  
     async def stop(self) -> None:
-        """Encerra o servidor (equivale a Server.stop() no Java)."""
+        """Encerra o servidor"""
         if self._server is not None:
             self._server.close()
             await self._server.wait_closed()
