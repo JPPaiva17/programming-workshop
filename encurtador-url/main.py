@@ -1,6 +1,41 @@
-def main():
-    print("Hello from encurtador-url!")
+from kafka.protocol.api import Response
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from sqlalchemy import select, update
+
+from database.database import SessionLocal, engine
+from database.models import Base, ShortURL
+from shortener import create_short_url
+
+app = FastAPI()
+
+Base.metadata.create_all(bind=engine)
+
+class ShortenRequest(BaseModel):
+    url: str
+
+class ShortenResponse(BaseModel):
+    short_code: str
+    short_url: str
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-if __name__ == "__main__":
-    main()
+@app.post("/shorten-url", response_model=ShortenResponse)
+async def shorten_url(payload: ShortenRequest):
+    db = SessionLocal
+    try:
+        short_url = create_short_url(db, payload.url)
+        return ShortenResponse(
+            short_code=short_url.short_code,
+            short_url=f"http://localhost:8080/{short_url.short_code}",
+        )
+    finally:
+        db.close()
