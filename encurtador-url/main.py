@@ -1,4 +1,3 @@
-from kafka.protocol.api import Response
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
@@ -37,5 +36,28 @@ async def shorten_url(payload: ShortenRequest):
             short_code=short_url.short_code,
             short_url=f"http://localhost:8080/{short_url.short_code}",
         )
+    finally:
+        db.close()
+
+
+@app.get("/{short_url}")
+async def redirect_url(short_code: str):
+    db = SessionLocal
+    try:
+        url_entity = db.execute(
+            select(ShortURL).where(ShortURL.short_code == short_code)
+        ).scalar_one_or_none()
+
+        if not url_entity:
+            raise HTTPException(status_code=404, detail="Codigo nao encontrado")
+        
+        db.execute(
+            update(ShortURL)
+            .where(ShortURL.id == url_entity.id)
+            .values(hits = (ShortURL.hits + 1))
+        )
+        db.commit()
+
+        return RedirectResponse(url_entity.original_url, status_code = 302)
     finally:
         db.close()
